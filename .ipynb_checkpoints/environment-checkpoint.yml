@@ -1,0 +1,55 @@
+name: dAMN_env
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  # --- Core ---
+  - python=3.11
+  - pip
+
+  # --- Jupyter / notebook stack ---
+  - ipython=8.31
+  - ipykernel=6.29
+  - jupyterlab=4.4
+  - notebook=7.4
+  - jupyter_client=8.6
+  - jupyter_core=5.7
+  - nbformat
+  - nbconvert
+
+  # --- Numerics / data ---
+  - numpy=1.24
+  - scipy=1.12
+  - pandas=2.2
+  - scikit-learn=1.6
+  - matplotlib=3.10
+
+  # --- TensorFlow / Keras stack (CPU) ---
+  - tensorboard=2.19
+  - tensorflow=2.19
+  - h5py
+
+  # --- Jupyter niceties (same as old env, but high-level only) ---
+  - matplotlib-inline
+  - nest-asyncio
+  - traitlets
+  - pygments
+  - psutil
+
+  # --- YAML / config ---
+  - pyyaml
+
+  # --- (Optionally) keep xarray if you actually use it ---
+  # - xarray
+  # - xarray-einstats
+
+  # --- dAMN / metabolic modeling pieces via pip ---
+  - pip:
+      - keras==3.9.1
+      - cobra==0.29.1
+      - python-libsbml==5.20.4
+      - swiglpk==5.0.12
+      - optlang==1.8.3
+      - pyabc==0.12.16
+      - silence-tensorflow==1.2.3

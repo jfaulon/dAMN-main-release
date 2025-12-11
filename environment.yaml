@@ -1,0 +1,19 @@
+name: damn-env
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.10.18
+  - pip
+  - numpy=1.23.5
+  - pandas
+  - scipy
+  - scikit-learn
+  - matplotlib
+  - cobra=0.29.1
+
+  - pip:
+      - tensorflow==2.16.2
+      - keras==3.9.2
+

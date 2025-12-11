@@ -1,0 +1,156 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2822
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\margl1440\margr1440\vieww16100\viewh13960\viewkind0
+\pard\tx566\tx1133\tx1700\tx2267\tx2834\tx3401\tx3968\tx4535\tx5102\tx5669\tx6236\tx6803\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 README \'96 Supported Data Formats for dAMN / utils.py\
+===================================================\
+\
+This document describes the two types of time-series datasets supported by the\
+dAMN metabolic modeling framework:\
+\
+  1. OD-based time series            (example: M28 dataset)\
+  2. Concentration-based time series (example: Millard dataset)\
+\
+Both formats use the same media file format and the same COBRA model.\
+The system automatically detects which format applies.\
+\
+---------------------------------------------------------------------------\
+1. MEDIA FILE FORMAT (COMMON TO ALL DATASETS)\
+---------------------------------------------------------------------------\
+\
+The media file specifies the initial extracellular substrate concentrations for\
+each experiment.\
+\
+Format: CSV with columns\
+\
+    ID, <met1>, <met2>, ..., <metN>\
+\
+Example:\
+\
+    ID, glc__D_e, ac_e\
+    1, 12.5,      0.2\
+    2, 12.5,      0.2\
+\
+Rules:\
+  - "ID" identifies the experiment.\
+  - All other columns are extracellular metabolites from the COBRA model.\
+  - BIOMASS must NOT be included here; it is added internally as the last\
+    species.\
+  - One row per experiment.\
+\
+---------------------------------------------------------------------------\
+2. TIME-SERIES FORMAT TYPE 1: OD-BASED FORMAT (Example: M28)\
+---------------------------------------------------------------------------\
+\
+This format is used when the dataset reports OD (optical density) instead of\
+actual concentrations. The OD values are automatically:\
+\
+  \'95 exponentiated if provided as log-OD  \
+  \'95 converted to biomass concentration via OD_to_concentration()  \
+\
+This generates a time series for BIOMASS only.\
+\
+For an experiment with ID = X, the time-series file must contain:\
+\
+    T_X, OD_X, DEV_X\
+\
+where:\
+  \'95 T_X   = time points  \
+  \'95 OD_X  = OD measurement (raw OD or log-OD)  \
+  \'95 DEV_X = optional deviation / uncertainty  \
+\
+Characteristics:\
+  \'95 Only BIOMASS is observed; all other species remain NaN.\
+  \'95 Typically used by legacy OD datasets (e.g., M28_OD_20.csv).\
+  \'95 The loader detects this format when columns named OD_* or DEV_* exist.\
+\
+Internal metabolite vector:\
+If the media file has k_media species, internally dAMN uses:\
+\
+    metabolite_ids = [media metabolites..., BIOMASS]\
+    k = k_media + 1\
+\
+BIOMASS is always placed at the last index.\
+\
+---------------------------------------------------------------------------\
+3. TIME-SERIES FORMAT TYPE 2: CONCENTRATION-BASED FORMAT (Example: Millard)\
+---------------------------------------------------------------------------\
+\
+This format is used when the dataset provides direct concentration measurements\
+for one or more extracellular metabolites, including biomass.\
+\
+Format requirement:\
+\
+    time, <met1>, <met2>, ..., BIOMASS\
+\
+Rules:\
+  \'95 BIOMASS MUST be the last column.\
+  \'95 Columns must correspond to extracellular metabolite IDs from the COBRA\
+    model.\
+  \'95 Units must match the media file (same concentration units).\
+  \'95 Any number of metabolites may be measured (1, 2, 3, \'85).\
+\
+Example (Millard):\
+\
+    time, glc__D_e, ac_e, BIOMASS\
+    0.00, 12.66,   0.96, 0.0631\
+    0.25, 11.92,   1.22, 0.1037\
+    0.50, 11.98,   1.46, 0.1406\
+    ...\
+\
+Internal metabolite vector:\
+\
+    metabolite_ids = [metabolites..., BIOMASS]\
+    k = number_of_measured_metabolites\
+\
+For Millard:\
+\
+    k = 3    (GLC, ACE, BIOMASS)\
+\
+---------------------------------------------------------------------------\
+4. AUTOMATIC FORMAT DETECTION\
+---------------------------------------------------------------------------\
+\
+process_data() determines the format automatically:\
+\
+  \'95 If OD_* or DEV_* columns are found \uc0\u8594  OD-based format (M28 style)\
+  \'95 Otherwise, if metabolite columns + BIOMASS exist \uc0\u8594  concentration format\
+    (Millard style)\
+\
+This enables seamless switching between datasets.\
+\
+---------------------------------------------------------------------------\
+5. CRITICAL RULE (APPLIES TO BOTH FORMATS!)\
+---------------------------------------------------------------------------\
+\
+In all internal structures of the model:\
+\
+    BIOMASS MUST BE THE LAST METABOLITE.\
+\
+This is required because:\
+  \'95 The biomass-drop penalty uses C_pred[:,-1] \'96 C_next[:,-1]\
+  \'95 The biomass reaction index is defined once via rxn_ids.index()\
+  \'95 Various loss terms and constraints depend on the biomass index\
+\
+Make sure your time-series table ends with the BIOMASS column.\
+\
+---------------------------------------------------------------------------\
+6. SUMMARY COMPARISON TABLE\
+---------------------------------------------------------------------------\
+\
+Feature                        | OD-based (M28)       | Concentration-based (Millard)\
+------------------------------ | --------------------- | ------------------------------\
+Input values                   | OD measurements       | Concentrations\
+Measured metabolites           | BIOMASS only          | \uc0\u8805  1 metabolites (GLC, ACE, ...)\
+BIOMASS column in file         | computed internally   | must be present + last column\
+Multiple experiments?          | Yes via ID            | Usually 1 (unless IDs added)\
+Requires OD \uc0\u8594  biomass mapping  | Yes                   | No\
+Media file required            | Yes                   | Yes\
+Internal ordering              | BIOMASS last          | BIOMASS last\
+\
+---------------------------------------------------------------------------\
+\
+End of README}
